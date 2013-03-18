@@ -1,0 +1,73 @@
+{% extends "consortium.html" %}
+{% load humanize %}
+{% load lookup %}
+
+{% block javascripts %}
+    {% if readonly %}
+    <script type=text/javascript>
+         $('document').ready(function(){
+             $('table textarea').attr('readonly', 'readonly');
+             $('table input').attr('readonly', 'readonly');
+         });
+    </script>
+    {% endif %}
+{% endblock %}
+
+{% block container %}
+    <h2 id="appheader" class="c">Mogadishu Bureau of Immigration</h2>
+    <div class="consortium_text" id="app_instructions">
+        <p>
+            The Government of Somalia is now accepting applications for residential and permanent visas.
+            Please fill out the information below to the best of your ability. We will get back to you with your placement
+            as soon as possible.
+        </p>
+        <p>
+            Applications are due by 6 a.m. EST on Friday, the first of March, 2013 {% if game_time %}({{ game_time|naturaltime }}){% endif %}.
+        </p>
+        <p>Game runs March 8<sup>th</sup>-17<sup>th</sup>, 2013.
+        </p>
+        <p class="ooc">
+            If you fill out at least your name and email
+            and click the "save" button below, your partial app will be saved.  You'll receive an email with a link to your app
+            and may resume it at your leisure.
+        </p>
+    {% if readonly %}
+        <b>This app has already been submitted and cannot be changed.</b>
+    {% endif %}
+    </div>
+    <div class="consortium" id="app">
+
+        <form action="{% url app app_id %}" method="POST">
+        {{ form.non_field_errors }}
+        {% csrf_token %}
+            <div class="appbutton">
+                {% if not readonly %}<input type="submit" id="save" class="gradientbutton greenbutton" name="app_submit" value="Save and Continue Editing" /> {% endif %}
+                {% if request.session.saved %}<span id="saved">Saved!</span>{% endif %}
+                <a class="explain" href="#" onclick="$('.explanation').slideToggle();">Expand All Explanations</a>
+            </div>
+            {% csrf_token %}
+            <table width=100%>
+                {% for field in form %}
+                <tr><th>{{ field.label_tag }}{% if field.errors %}<span class="field_error">{{ field.errors }}</span>{% endif %}
+                {% if form.explanations|lookup:field.name %}
+                    <a class="explain" onclick="$('#explanation_{{ field.name }}').slideToggle();">Explain</a>
+                    <div class="explanation" id="explanation_{{ field.name }}" style="display:none;">{{ form.explanations|lookup:field.name|safe }}</div>
+                {% endif %}
+                </th><td>{{ field }}</td></tr>
+                    {% ifequal field.name "how_cast" %}
+                        {% if not readonly %}<tr><td colspan="2"><input type="submit" id="save" class="gradientbutton greenbutton" name="app_submit" value="Save and Continue Editing" />                        </td></tr>{% endif %}
+                        <tr><td colspan="2" class="text separator">These questions are for statistical purposes and are not required for casting.</td></tr>
+                    {% endifequal %}
+                    {% ifequal field.name "zephyr" %}
+                    <tr><td colspan="2" class="text separator">These questions are optional; more detail is always good.</td></tr>
+                    {% endifequal %}
+                {% endfor %}
+            {% if not readonly %}
+                <tr><td colspan="2"><input type="submit" id="save" class="gradientbutton greenbutton" name="app_submit" value="Save and Continue Editing" /></td></tr>
+                <tr><td colspan="2"><input type="submit" value="Submit App" id="apply" name="app_submit" class="gradientbutton redbutton"/></td></tr>
+            {% endif %}
+            </table>
+        </form>
+
+    </div>
+{% endblock %}
