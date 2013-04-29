@@ -1,4 +1,4 @@
 from django.contrib import admin
-from models import ConsortiumApp
+from models import GameApp
 
-admin.site.register(ConsortiumApp)
+admin.site.register(GameApp)

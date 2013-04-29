@@ -10,8 +10,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.encoding import smart_unicode
 from django.views.decorators.csrf import csrf_exempt
-from consortium.consortium import send_mail
-from models import AppForm, ConsortiumApp
+from threadmail import send_mail
+from models import AppForm, GameApp
+from settings import GAME_NAME, GAME_EMAIL, GM_EMAIL, APP_DEADLINE
 import csv
 
 @csrf_exempt
@@ -20,8 +21,8 @@ def app(request, app_id=None):
     readonly = request.GET.get('readonly', False)
     if request.method == 'POST':
         try:
-            instance = ConsortiumApp.objects.get(app_id=app_id)
-        except ConsortiumApp.DoesNotExist:
+            instance = GameApp.objects.get(app_id=app_id)
+        except GameApp.DoesNotExist:
             instance = None
         form = AppForm(request.POST, instance=instance)
         if form.is_valid():
@@ -30,10 +31,10 @@ def app(request, app_id=None):
                 app.saved_on = datetime.now()
                 app.save()
                 if not instance:
-                    send_mail("[Consortium] Your App Link",
+                    send_mail("[%s] Your App Link" % GAME_NAME,
                         render_to_string('app/app_saved_email.html', {'app': app}),
-                        "consortium-gms@cternus.net",
-                        [app.email], fail_silently=True, html=render_to_string('app/app_saved_email.html', {'app': app}),
+                        GAME_EMAIL,
+                        [app.email], fail_silently=True, html=render_to_string('app/app_saved_email.html', {'app': app, 'game_name': GAME_NAME, 'base_url': }),
                     )
                 messages.success(request, 'Saved! You can continue editing, but make sure to save or submit when you\'re done.')
                 return redirect(reverse('app', args=[app.app_id]))
@@ -43,17 +44,17 @@ def app(request, app_id=None):
                 app.submitted = True
                 app.save()
                 form = AppForm(instance=app)
-                send_mail("[Consortium] App from %s" % app.name,
+                send_mail("[%s] App from %s" % (GAME_NAME, app.name),
                     render_to_string('app/app_email.html', {'form': form}),
-                    "consortium-gms@cternus.net",
-                    ['consortium-gms@mit.edu', app.email], html=render_to_string('app/app_email.html', {'form': form}),
+                    GAME_EMAIL,
+                    [GM_EMAIL, app.email], html=render_to_string('app/app_email.html', {'form': form}),
                 )
                 return render(request, "app/postapp.html", {'app': app})
         else:
             messages.error(request, "Please correct the problems below.")
 #            return redirect(reverse('app'))
     elif app_id:
-        app = get_object_or_404(ConsortiumApp, app_id=app_id)
+        app = get_object_or_404(GameApp, app_id=app_id)
         form = AppForm(instance=app)
         readonly = request.GET.get('readonly', app.submitted)
     else:
@@ -63,8 +64,8 @@ def app(request, app_id=None):
 
 @login_required()
 def dashboard(request):
-    apps = ConsortiumApp.objects.all()
-    due_time = naturaltime(datetime(2013,3,1,6))
+    apps = GameApp.objects.all()
+    due_time = naturaltime(APP_DEADLINE)
     complete_apps = apps.filter(submitted=True).order_by('apped_on')
     incomplete_apps = apps.filter(submitted=False).order_by('saved_on')
     return render(request, "app/dashboard.html", {'apps': apps,
@@ -72,10 +73,11 @@ def dashboard(request):
                                                   'incomplete_apps': incomplete_apps,
                                                   'due_time': due_time})
 
+@login_required()
 def app_csv(request):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=apps.csv'
-    fields = ConsortiumApp._meta.fields
+    fields = GameApp._meta.fields
     headers = [field.name for field in fields]
     writer = csv.writer(response, delimiter='|')
     writer.writerow(headers)
@@ -86,17 +88,18 @@ def app_csv(request):
             return getattr(app, x)
         except:
             return "UNICODE ERROR"
-    for app in ConsortiumApp.objects.filter(submitted=True).order_by('apped_on'):
+    for app in GameApp.objects.filter(submitted=True).order_by('apped_on'):
         writer.writerow([_foo(f) for f in headers])
     return response
 
 
+@login_required()
 def remind(request, app_id):
-    app = get_object_or_404(ConsortiumApp, app_id=app_id)
+    app = get_object_or_404(GameApp, app_id=app_id)
     due_time = naturaltime(datetime(2013,3,1,6))
-    send_mail("[Consortium] App Reminder",
+    send_mail("[%s] App Reminder" % GAME_NAME,
     render_to_string('app/app_reminder.html', {'app': app, 'due_time': due_time}),
-    "consortium-gms@cternus.net",
+    GAME_EMAIL,
     [app.email], fail_silently=True, html=render_to_string('app/app_reminder.html', {'app': app, 'due_time': due_time})
     )
     messages.success(request, "Reminded %s." % True)
@@ -106,10 +109,10 @@ def remind(request, app_id):
 def remind_everyone(request):
     due_time = naturaltime(datetime(2013, 3, 1, 6))
 
-    for app in ConsortiumApp.objects.filter(submitted=False):
-        send_mail("[Consortium] App Reminder",
+    for app in GameApp.objects.filter(submitted=False):
+        send_mail("[%s] App Reminder" % GAME_NAME,
                   render_to_string('app/app_reminder.html', {'app': app, 'due_time': due_time}),
-                  "consortium-gms@cternus.net",
+                  GAME_EMAIL,
                   [app.email], fail_silently=True,
                   html=render_to_string('app/app_reminder.html', {'app': app, 'due_time': due_time})
         )

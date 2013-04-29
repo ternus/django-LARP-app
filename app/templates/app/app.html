@@ -54,13 +54,6 @@
                     <div class="explanation" id="explanation_{{ field.name }}" style="display:none;">{{ form.explanations|lookup:field.name|safe }}</div>
                 {% endif %}
                 </th><td>{{ field }}</td></tr>
-                    {% ifequal field.name "how_cast" %}
-                        {% if not readonly %}<tr><td colspan="2"><input type="submit" id="save" class="gradientbutton greenbutton" name="app_submit" value="Save and Continue Editing" />                        </td></tr>{% endif %}
-                        <tr><td colspan="2" class="text separator">These questions are for statistical purposes and are not required for casting.</td></tr>
-                    {% endifequal %}
-                    {% ifequal field.name "zephyr" %}
-                    <tr><td colspan="2" class="text separator">These questions are optional; more detail is always good.</td></tr>
-                    {% endifequal %}
                 {% endfor %}
             {% if not readonly %}
                 <tr><td colspan="2"><input type="submit" id="save" class="gradientbutton greenbutton" name="app_submit" value="Save and Continue Editing" /></td></tr>

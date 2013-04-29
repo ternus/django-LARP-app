@@ -7,7 +7,7 @@ from datetime import datetime
 
 ML = 256
 
-class ConsortiumApp(models.Model):
+class GameApp(models.Model):
     name = models.CharField(max_length=ML)
     email = models.EmailField(max_length=ML)
     phone = models.CharField(max_length=ML, blank=True)
@@ -62,12 +62,12 @@ class ConsortiumApp(models.Model):
     def save(self, *args, **kwargs):
         if not self.pk:
             self.app_id = hashlib.sha1(str(datetime.now())).hexdigest()[:6]
-        return super(ConsortiumApp, self).save(*args, **kwargs)
+        return super(GameApp, self).save(*args, **kwargs)
 
 
 class AppForm(ModelForm):
     class Meta:
-        model = ConsortiumApp
+        model = GameApp
         large = {'cols': None, 'rows': 6}
 
         attrs = {'cols': None, 'rows': 4}
