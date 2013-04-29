@@ -13,10 +13,12 @@ A Django app for LARP GMs to run and manage applications for their game.
  * Create an `app/models.py` using `app/models.example.py` as an example.
  * Edit `app.html` to integrate with your game's app if there is one.
 
-You have permission to use it, or derivatives thereof, for your MIT Assassins' Guild game, subject to the following disclaimer:
+You have permission to use it, or derivatives thereof, for your game, subject to the following disclaimer:
 
 THIS CODE COMES WITH NO WARRANTY OR PROMISE OF FUNCTIONALITY WHATSOEVER. IT IS ALMOST CERTAINLY INSECURE. IT MAY BREAK ON DAY EIGHT, REVEAL SECRETS TO YOUR PLAYERS, COMPROMISE YOUR SERVER, AND KICK YOUR PUPPY. NEITHER THE AUTHORS NOR THE MIT ASSASSINS' GUILD ASSUME ANY LIABILITY WHATSOEVER FOR ANYTHING YOU DO WITH THIS CODE.
 
 Enjoy!
+
 -ternus
+
 4/13
